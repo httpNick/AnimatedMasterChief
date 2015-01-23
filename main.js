@@ -44,6 +44,7 @@ function MasterChief(game, spritesheet) {
     this.moveAnimate = new Animate(spritesheet, 120, 0, 46, 70, 0.1, 3, true, false);
     this.shootAnimate = new Animate(spritesheet, 49, 0, 60, 70, 0.1, 1, true, false);
     this.crouchAnimate = new Animate(spritesheet, 100, 76, 46, 70, 0.1, 4, false, false);
+    this.holdCrouchAnimate = new Animate(spritesheet, 238, 76, 46, 70, 0.1, 4, false, false);
     this.x = 0;
     this.y = 0;
     this.game = game;
@@ -58,7 +59,14 @@ MasterChief.prototype.draw = function() {
         this.moveAnimate.drawFrame(this.game.clockTick, this.ctx, this.x, this.y);
     } else if (crouching) {
         this.crouchAnimate.drawFrame(this.game.clockTick, this.ctx, this.x, this.y);
-    }   else {
+        if (this.crouchAnimate.isDone()) {
+            this.crouchAnimate.elapsedTime = 0;
+            crouching = false;
+            holdCrouch = true;
+        }
+    } else if (holdCrouch) {
+      this.holdCrouchAnimate.drawFrame(this.game.clockTick, this.ctx, this.x, this.y);
+    } else {
         this.animate.drawFrame(this.game.clockTick, this.ctx, this.x, this.y);
     }
 }
@@ -119,19 +127,21 @@ function keyDownHandler(event) {
         isMoving = false;
         direction = 0;
         crouching = true;
+    } else if (keyPressed == "W") {
+        shooting = true;
     }
 }
 
 function keyUpHandler(event) {
 
     var keyPressed = String.fromCharCode(event.keyCode);
-
     if (keyPressed == "D") {
         isMoving = false;
     } else if (keyPressed == "A") {
         isMoving = false;
     } else if (keyPressed == "S") {
         crouching = false;
+        holdCrouch = false;
     }
 }
 var assets = new Assets();
@@ -139,6 +149,7 @@ var isMoving = false;
 var direction;
 var shooting;
 var crouching;
+var holdCrouch;
 
 var gameEngine = new GameEngine();
 
@@ -150,13 +161,14 @@ assets.downloadAll(function() {
     var ctx = canvas.getContext("2d");
     document.addEventListener("keydown",keyDownHandler, false);
     document.addEventListener("keyup",keyUpHandler, false);
+    /* This event listener worked on chrome, but not firefox.
     document.addEventListener("keypress", function(event){
         var keyPressed = String.fromCharCode(event.keyCode);
-        if (keyPressed == "w") {
+        if (keyPressed == "W") {
             shooting = true;
         }
 
-    }, false);
+    }, false); */
     gameEngine.init(ctx);
     gameEngine.start();
 
