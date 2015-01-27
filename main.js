@@ -44,7 +44,7 @@ function MasterChief(game, spritesheet) {
     this.moveAnimate = new Animate(spritesheet, 120, 0, 46, 70, 0.1, 3, true, false);
     this.shootAnimate = new Animate(spritesheet, 49, 0, 60, 70, 0.1, 1, true, false);
     this.crouchAnimate = new Animate(spritesheet, 100, 76, 46, 70, 0.1, 4, false, false);
-    this.holdCrouchAnimate = new Animate(spritesheet, 238, 76, 46, 70, 0.1, 4, false, false);
+    this.holdCrouchAnimate = new Animate(spritesheet, 238, 76, 46, 70, 0.1, 1, true, false);
     this.x = 0;
     this.y = 0;
     this.game = game;
@@ -57,15 +57,10 @@ MasterChief.prototype.draw = function() {
         this.shootAnimate.drawFrame(this.game.clockTick, this.ctx, this.x, this.y);
     } else if (isMoving) {
         this.moveAnimate.drawFrame(this.game.clockTick, this.ctx, this.x, this.y);
-    } else if (crouching) {
+    }   else if (crouching) {
         this.crouchAnimate.drawFrame(this.game.clockTick, this.ctx, this.x, this.y);
-        if (this.crouchAnimate.isDone()) {
-            this.crouchAnimate.elapsedTime = 0;
-            crouching = false;
-            holdCrouch = true;
-        }
     } else if (holdCrouch) {
-      this.holdCrouchAnimate.drawFrame(this.game.clockTick, this.ctx, this.x, this.y);
+        this.holdCrouchAnimate.drawFrame(this.game.clockTick, this.ctx, this.x, this.y);
     } else {
         this.animate.drawFrame(this.game.clockTick, this.ctx, this.x, this.y);
     }
@@ -74,6 +69,16 @@ MasterChief.prototype.draw = function() {
 MasterChief.prototype.update = function() {
     if (isMoving) {
         this.x += direction;
+    }
+    if (crouching) {
+        if (this.crouchAnimate.isDone()) {
+            if (crouching) {
+                holdCrouch = true;
+            } else {
+                crouchAnimate.elapsedTime = 0;
+            }
+            crouching = false;
+        }
     }
     if (shooting) {
         this.shoot();
@@ -115,21 +120,21 @@ Bullet.prototype.isOffScreen = function() {
 function keyDownHandler(event) {
 
     var keyPressed = String.fromCharCode(event.keyCode);
-
     if (keyPressed == "D")
     {
         isMoving = true;
         direction = 2;
-    } else if (keyPressed == "A") {
+    } else if (keyPressed === "A") {
         isMoving = true;
         direction = -2;
-    } else if (keyPressed == "S") {
+    } else if (keyPressed === "S") {
         isMoving = false;
         direction = 0;
         crouching = true;
-    } else if (keyPressed == "W") {
+    } else if (keyPressed === "W") {
         shooting = true;
     }
+    event.preventDefault();
 }
 
 function keyUpHandler(event) {
@@ -137,12 +142,13 @@ function keyUpHandler(event) {
     var keyPressed = String.fromCharCode(event.keyCode);
     if (keyPressed == "D") {
         isMoving = false;
-    } else if (keyPressed == "A") {
+    } else if (keyPressed === "A") {
         isMoving = false;
-    } else if (keyPressed == "S") {
+    } else if (keyPressed === "S") {
         crouching = false;
         holdCrouch = false;
     }
+    event.preventDefault();
 }
 var assets = new Assets();
 var isMoving = false;
@@ -159,8 +165,8 @@ assets.queueDownload("./img/bullet.png");
 assets.downloadAll(function() {
     var canvas = document.getElementById("gameCanvas");
     var ctx = canvas.getContext("2d");
-    document.addEventListener("keydown",keyDownHandler, false);
-    document.addEventListener("keyup",keyUpHandler, false);
+    canvas.addEventListener("keydown",keyDownHandler, false);
+    canvas.addEventListener("keyup",keyUpHandler, false);
     /* This event listener worked on chrome, but not firefox.
     document.addEventListener("keypress", function(event){
         var keyPressed = String.fromCharCode(event.keyCode);

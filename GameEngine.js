@@ -73,6 +73,8 @@ GameEngine.prototype.loop = function() {
     this.update();
     this.draw();
     shooting = null;
+    crouching = null;
+
 }
 
 function Timer() {
